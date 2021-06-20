@@ -44,7 +44,7 @@ namespace Web_Api
                 builder.AddQueueServiceClient(Configuration["ConnectionStrings:AzureStorageConnect:queue"], preferMsi: true);
             });
 
-            //Start BlobQueue Thread
+            //Start BookQueue Thread
             BookQueue bookQueueObject = new BookQueue(Configuration);
             Thread BookInstanceCaller = new Thread(new ThreadStart(bookQueueObject.run));
             BookInstanceCaller.Start();

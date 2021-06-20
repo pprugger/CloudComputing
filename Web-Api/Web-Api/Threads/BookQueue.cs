@@ -52,7 +52,7 @@ namespace Web_Api.Threads
 
                     try
                     {
-                        var item =  await _container.CreateItemAsync<Book>(newBook new PartitionKey(newBook.ISBN));
+                        var item =  await _container.CreateItemAsync<Book>(newBook, new PartitionKey(newBook.ISBN));
                         // Log message to console
                         Console.WriteLine($"Message: {message.Body}");
 

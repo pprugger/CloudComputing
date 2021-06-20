@@ -19,13 +19,11 @@ namespace Web_Api
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-.ConfigureAppConfiguration((context, config) =>
-{
-    var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri"));
-    config.AddAzureKeyVault(
-keyVaultEndpoint,
-new DefaultAzureCredential());
-})
+            .ConfigureAppConfiguration((context, config) =>
+                {
+                    var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri"));
+                    config.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());  
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();

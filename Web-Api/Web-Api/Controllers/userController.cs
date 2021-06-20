@@ -35,7 +35,7 @@ namespace Web_Api.Controllers
             _database = _cosmosClient.GetDatabase("ccstandarddb");
             _database.CreateContainerIfNotExistsAsync("users", "/id");
             _container = _cosmosClient.GetContainer("ccstandarddb", "users");
-            _logger.LogInformation("Container found!");
+           // _logger.LogInformation("Container found!");
         }
 
         // GET: api/<UserController>

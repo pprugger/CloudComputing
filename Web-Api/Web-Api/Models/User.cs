@@ -3,12 +3,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.Azure.Cosmos.Table;
 
 
 namespace Web_Api.Models
 {
-    public class User
+    public class User : TableEntity
     {
         public string id { get; set; }
 

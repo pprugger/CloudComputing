@@ -3,6 +3,7 @@ using Azure.Storage.Queues;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -31,6 +32,10 @@ namespace Web_Api.Controllers
         BlobContainerClient containerClient;
         QueueClient queue;
 
+        CloudStorageAccount storageAccount;
+        CloudTableClient tableClient;
+        string tableName = "Statistik2";
+        CloudTable table;
 
         public booksController(ILogger<booksController> logger, IConfiguration configuration)
         {
@@ -57,6 +62,13 @@ namespace Web_Api.Controllers
             //Init queue
             queue = new QueueClient(configuration.GetConnectionString("AzureStorageConnect"), bookQueueName);
             queue.CreateIfNotExists();
+
+            //Init TableClient
+
+            storageAccount = CloudStorageAccount.Parse(configuration.GetConnectionString("AzureStorageConnect"));
+            tableClient = storageAccount.CreateCloudTableClient(new TableClientConfiguration());
+            table = tableClient.GetTableReference(tableName);
+            table.CreateIfNotExists();
         }
 
         // GET: api/<ValuesController>
