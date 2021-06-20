@@ -15,6 +15,8 @@ using Microsoft.Extensions.Azure;
 using Azure.Storage.Queues;
 using Azure.Storage.Blobs;
 using Azure.Core.Extensions;
+using Web_Api.Threads;
+using System.Threading;
 
 namespace Web_Api
 {
@@ -41,6 +43,17 @@ namespace Web_Api
                 builder.AddBlobServiceClient(Configuration["ConnectionStrings:AzureStorageConnect:blob"], preferMsi: true);
                 builder.AddQueueServiceClient(Configuration["ConnectionStrings:AzureStorageConnect:queue"], preferMsi: true);
             });
+
+            //Start BlobQueue Thread
+            BookQueue bookQueueObject = new BookQueue(Configuration);
+            Thread BookInstanceCaller = new Thread(new ThreadStart(bookQueueObject.run));
+            BookInstanceCaller.Start();
+
+            //Start UserQueue Thread
+            UserQueue userQueueObject = new UserQueue(Configuration);
+            Thread UserInstanceCaller = new Thread(new ThreadStart(userQueueObject.run));
+            UserInstanceCaller.Start();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

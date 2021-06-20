@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Storage.Blobs;
+using Azure.Storage.Queues;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +25,13 @@ namespace Web_Api.Controllers
         private Database _database;
         private Container _container;
 
+        string containerName = "images";
+        string bookQueueName = "bookinputqueue";
+        BlobServiceClient blobServiceClient;
+        BlobContainerClient containerClient;
+        QueueClient queue;
+
+
         public booksController(ILogger<booksController> logger, IConfiguration configuration)
         {
             _logger = logger;
@@ -31,13 +40,23 @@ namespace Web_Api.Controllers
 
         private void CreateClientAndDatabase(IConfiguration configuration)
         {
+            //Init CosmosDB
             _cosmosClient = new CosmosClient(configuration.GetConnectionString("CosmosDBString")); ;
-
             _cosmosClient.CreateDatabaseIfNotExistsAsync("ccstandarddb");
             _database = _cosmosClient.GetDatabase("ccstandarddb");
             _database.CreateContainerIfNotExistsAsync("books", "/id");
             _container = _cosmosClient.GetContainer("ccstandarddb", "books");
-           // _logger.LogInformation("Container found!");
+            // _logger.LogInformation("Container found!");
+
+            //Init Blob Storage
+            //Container created in deployment
+            blobServiceClient = new BlobServiceClient((configuration.GetConnectionString("AzureStorageConnect")));
+            containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            //containerClient.UploadBlob
+
+            //Init queue
+            queue = new QueueClient(configuration.GetConnectionString("AzureStorageConnect"), bookQueueName);
+            queue.CreateIfNotExists();
         }
 
         // GET: api/<ValuesController>
@@ -64,7 +83,7 @@ namespace Web_Api.Controllers
             {
                 books.Add(matchingBook);
             }
-
+            
             return books;
         }
 
@@ -104,7 +123,8 @@ namespace Web_Api.Controllers
             try
             {
                 var json = JsonConvert.SerializeObject(newBook);
-                var item = await _container.CreateItemAsync<Book>(newBook, new PartitionKey(newBook.ISBN));
+                //var item = await _container.CreateItemAsync<Book>(newBook, new PartitionKey(newBook.ISBN));
+                queue.SendMessage(json);
                 //newBook.ETag = item.ETag;
             }
             catch (Exception e)
