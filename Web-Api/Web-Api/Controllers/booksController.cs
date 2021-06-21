@@ -120,7 +120,7 @@ namespace Web_Api.Controllers
 
         // PUT api/<ValuesController>/5
         [HttpPut]
-        public async Task<IActionResult> Put([FromBody] Book request)
+        public IActionResult Put([FromBody] Book request)
         {
             //Web_Api.Models.Users user2 = new Web_Api.Models.Users();
             //IEnumerable<Web_Api.Models.Books> allBooks = this.GetAll();
@@ -222,16 +222,29 @@ namespace Web_Api.Controllers
             return Ok();
         }
 
-        [HttpDelete("/image/{id}")]
-        public void DeleteImage(int id)
+        [HttpDelete("/image")]
+        public IActionResult DeleteImage(string blobName)
         {
+            BlobClient blob = containerClient.GetBlobClient(blobName);
+            Azure.Response<bool> response = blob.DeleteIfExists();
+
+            return Ok(response);
         }
 
         // POST api/<ValuesController>
-        [HttpPost("/image/{id}")]
-        public void PostImage([FromBody] string value)
+        [HttpPost("/image")]
+        public IActionResult PostImage([FromBody] BlobImage replaceBlob)
         {
-        }
+            //A post to an existing object changes the content
+            BlobClient blob = containerClient.GetBlobClient(replaceBlob.blobName);
+            byte[] content = Convert.FromBase64String(replaceBlob.Base64Data);
+            BinaryData data = new BinaryData(content);
 
+            blob.Upload(data);
+
+            //Debug to console
+            Console.WriteLine(data);
+            return Ok();
+        }
     }
 }
