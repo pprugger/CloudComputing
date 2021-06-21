@@ -10,9 +10,11 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Web_Api.Models;
+
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -166,20 +168,44 @@ namespace Web_Api.Controllers
         }
 
         [HttpGet("/image/{id}")]
-        public string ImageGet(string blobname)
+        public BlobImage ImageGet(string blobName)
         {
             //return "value";
 
-            BlobClient blob = containerClient.GetBlobClient(blobname);
-            BlobDownloadResult test = blob.DownloadContent();
+            BlobImage returnBlob = new BlobImage();
 
-            byte [] content = test.Content.ToArray();
+            BlobClient blob = containerClient.GetBlobClient(blobName);
+            BlobDownloadResult downloadBlob = blob.DownloadContent();
+
+            byte [] content = downloadBlob.Content.ToArray();
 
             // Convert the array to a base 64 string.
-            string s = Convert.ToBase64String(content);
-            Console.WriteLine(s);
+            string data = Convert.ToBase64String(content);
 
-            return s;
+            returnBlob.blobName = blobName;
+            returnBlob.Base64Data = data;
+
+            //Debug to console
+            Console.WriteLine(data);
+
+            //Download file if needed
+            /*
+            string localPath = "./data/";
+            string fileName = Guid.NewGuid().ToString() + ".txt";
+            string localFilePath = Path.Combine(localPath, fileName);
+            string downloadFilePath = localFilePath.Replace(".jpg", "DOWNLOADED.jpg");
+
+            Console.WriteLine("\nDownloading blob to\n\t{0}\n", downloadFilePath);
+
+            // Download the blob's contents and save it to a file
+
+            using (BinaryWriter writer = new BinaryWriter(System.IO.File.Open(localFilePath, FileMode.Create)))
+            {
+                writer.Write(downloadBlob.Content);
+            }
+            */
+
+            return returnBlob;
         }
 
         [HttpPut("/image")]
