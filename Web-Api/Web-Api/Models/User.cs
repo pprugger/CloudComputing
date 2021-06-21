@@ -8,7 +8,7 @@ using Microsoft.Azure.Cosmos.Table;
 
 namespace Web_Api.Models
 {
-    public class User : TableEntity
+    public class User
     {
         public string id { get; set; }
 

@@ -62,8 +62,6 @@ namespace Web_Api.Controllers
             containerClient = blobServiceClient.GetBlobContainerClient(containerName);
             containerClient.CreateIfNotExists();
 
-            //containerClient.UploadBlob
-
             //Init queue
             queue = new QueueClient(configuration.GetConnectionString("AzureStorageConnect"), bookQueueName);
             queue.CreateIfNotExists();

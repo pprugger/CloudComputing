@@ -10,6 +10,8 @@ using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Web_Api.Models;
 using Microsoft.Azure.Cosmos;
+using User = Web_Api.Models.User;
+using Newtonsoft.Json;
 
 namespace Web_Api.Threads
 {
@@ -43,18 +45,29 @@ namespace Web_Api.Threads
 
         }
 
-        public void run()
+        public async void run()
         {
             while(true)
             {
                 foreach (QueueMessage message in queue.ReceiveMessages(maxMessages: 10).Value)
                 {
-                    // "Process" the message
-                    Console.WriteLine($"Message: {message.Body}");
+                    User newUser = JsonConvert.DeserializeObject<User>(message.Body.ToString());
+                    try
+                    {
+                        var item = await _container.CreateItemAsync<User>(newUser, new PartitionKey(newUser.id));
+                        // Log message to console
+                        Console.WriteLine($"Message: {message.Body}");
 
-                    // Let the service know we're finished with the message and
-                    // it can be safely deleted.
-                    queue.DeleteMessage(message.MessageId, message.PopReceipt);
+                        // Let the service know we're finished with the message and
+                        // it can be safely deleted.
+                        queue.DeleteMessage(message.MessageId, message.PopReceipt);
+
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Adding user failed with error: {e}");
+                        throw;
+                    }
                 }
             }
         }
