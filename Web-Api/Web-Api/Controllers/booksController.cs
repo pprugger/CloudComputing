@@ -1,4 +1,5 @@
 ﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Queues;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
@@ -26,16 +27,16 @@ namespace Web_Api.Controllers
         private Database _database;
         private Container _container;
 
-        string containerName = "images";
-        string bookQueueName = "bookinputqueue";
-        BlobServiceClient blobServiceClient;
-        BlobContainerClient containerClient;
-        QueueClient queue;
+        private string containerName = "images";
+        private string bookQueueName = "bookinputqueue";
+        private BlobServiceClient blobServiceClient;
+        private BlobContainerClient containerClient;
+        private QueueClient queue;
 
-        CloudStorageAccount storageAccount;
-        CloudTableClient tableClient;
-        string tableName = "Statistik2";
-        CloudTable table;
+        private CloudStorageAccount storageAccount;
+        private CloudTableClient tableClient;
+        private string tableName = "Statistik2";
+        private CloudTable table;
 
         public booksController(ILogger<booksController> logger, IConfiguration configuration)
         {
@@ -57,11 +58,14 @@ namespace Web_Api.Controllers
             //Container created in deployment
             blobServiceClient = new BlobServiceClient((configuration.GetConnectionString("AzureStorageConnect")));
             containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            containerClient.CreateIfNotExists();
+
             //containerClient.UploadBlob
 
             //Init queue
             queue = new QueueClient(configuration.GetConnectionString("AzureStorageConnect"), bookQueueName);
             queue.CreateIfNotExists();
+           
 
             //Init TableClient
 
@@ -146,7 +150,6 @@ namespace Web_Api.Controllers
             }
 
             return Ok(newBook);
-
         }
 
 
@@ -163,9 +166,20 @@ namespace Web_Api.Controllers
         }
 
         [HttpGet("/image/{id}")]
-        public string ImageGet(int id)
+        public string ImageGet(string blobname)
         {
-            return "value";
+            //return "value";
+
+            BlobClient blob = containerClient.GetBlobClient(blobname);
+            BlobDownloadResult test = blob.DownloadContent();
+
+            byte [] content = test.Content.ToArray();
+
+            // Convert the array to a base 64 string.
+            string s = Convert.ToBase64String(content);
+            Console.WriteLine(s);
+
+            return s;
         }
 
         [HttpPut("/image")]
