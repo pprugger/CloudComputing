@@ -167,7 +167,7 @@ namespace Web_Api.Controllers
             return Ok();
         }
 
-        [HttpGet("/image/{id}")]
+        [HttpGet("/image/")]
         public BlobImage ImageGet(string blobName)
         {
             //return "value";
@@ -188,18 +188,18 @@ namespace Web_Api.Controllers
             //Debug to console
             Console.WriteLine(data);
 
-            //Download file if needed
+            //Save file if needed
             /*
             string localPath = "./data/";
             string fileName = Guid.NewGuid().ToString() + ".txt";
             string localFilePath = Path.Combine(localPath, fileName);
-            string downloadFilePath = localFilePath.Replace(".jpg", "DOWNLOADED.jpg");
+            string downloadFilePath = localFilePath.Replace(".txt", ".jpg");
 
             Console.WriteLine("\nDownloading blob to\n\t{0}\n", downloadFilePath);
 
             // Download the blob's contents and save it to a file
 
-            using (BinaryWriter writer = new BinaryWriter(System.IO.File.Open(localFilePath, FileMode.Create)))
+            using (BinaryWriter writer = new BinaryWriter(System.IO.File.Open(downloadFilePath, FileMode.Create)))
             {
                 writer.Write(downloadBlob.Content);
             }
@@ -209,8 +209,17 @@ namespace Web_Api.Controllers
         }
 
         [HttpPut("/image")]
-        public void PutImage(int id, [FromBody] string value)
+        public IActionResult PutImage([FromBody] BlobImage uploadBlob)
         {
+            BlobClient blob = containerClient.GetBlobClient(uploadBlob.blobName);
+            byte[] content = Convert.FromBase64String(uploadBlob.Base64Data);
+            BinaryData data = new BinaryData(content);
+
+            blob.Upload(data);
+
+            //Debug to console
+            Console.WriteLine(data);
+            return Ok();
         }
 
         [HttpDelete("/image/{id}")]
