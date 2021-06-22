@@ -36,48 +36,53 @@ namespace Web_Api.Controllers
         private BlobContainerClient containerClient;
         private QueueClient queue;
 
+        //Test, only used in Azure Function
+        /*
         private CloudStorageAccount storageAccount;
         private CloudTableClient tableClient;
-        private string tableName = "Statistik2";
+        private string tableName = "Statistik";
         private CloudTable table;
+        */
 
-        public booksController(ILogger<booksController> logger, IConfiguration configuration)
-        {
-            _logger = logger;
-            CreateClientAndDatabase(configuration);
-        }
+    public booksController(ILogger<booksController> logger, IConfiguration configuration)
+    {
+        _logger = logger;
+        CreateClientAndDatabase(configuration);
+    }
 
-        private void CreateClientAndDatabase(IConfiguration configuration)
-        {
-            //Init CosmosDB
-            _cosmosClient = new CosmosClient(configuration.GetConnectionString("CosmosDBString")); ;
-            _cosmosClient.CreateDatabaseIfNotExistsAsync("ccstandarddb");
-            _database = _cosmosClient.GetDatabase("ccstandarddb");
-            _database.CreateContainerIfNotExistsAsync("books", "/id");
-            _container = _cosmosClient.GetContainer("ccstandarddb", "books");
-            // _logger.LogInformation("Container found!");
+    private void CreateClientAndDatabase(IConfiguration configuration)
+    {
+        //Init CosmosDB
+        _cosmosClient = new CosmosClient(configuration.GetConnectionString("CosmosDBString")); ;
+        _cosmosClient.CreateDatabaseIfNotExistsAsync("ccstandarddb");
+        _database = _cosmosClient.GetDatabase("ccstandarddb");
+        _database.CreateContainerIfNotExistsAsync("books", "/id");
+        _container = _cosmosClient.GetContainer("ccstandarddb", "books");
+        // _logger.LogInformation("Container found!");
 
-            //Init Blob Storage
-            //Container created in deployment
-            blobServiceClient = new BlobServiceClient((configuration.GetConnectionString("AzureStorageConnect")));
-            containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            containerClient.CreateIfNotExists();
+        //Init Blob Storage
+        //Container created in deployment
+        blobServiceClient = new BlobServiceClient((configuration.GetConnectionString("AzureStorageConnect")));
+        containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+        containerClient.CreateIfNotExists();
 
-            //Init queue
-            queue = new QueueClient(configuration.GetConnectionString("AzureStorageConnect"), bookQueueName);
-            queue.CreateIfNotExists();
-           
+        //Init queue
+        queue = new QueueClient(configuration.GetConnectionString("AzureStorageConnect"), bookQueueName);
+        queue.CreateIfNotExists();
 
-            //Init TableClient
 
-            storageAccount = CloudStorageAccount.Parse(configuration.GetConnectionString("AzureStorageConnect"));
-            tableClient = storageAccount.CreateCloudTableClient(new TableClientConfiguration());
-            table = tableClient.GetTableReference(tableName);
-            table.CreateIfNotExists();
-        }
+        //Init TableClient
+        //Test, only used in Azure Function
+        /*
+        storageAccount = CloudStorageAccount.Parse(configuration.GetConnectionString("AzureStorageConnect"));
+        tableClient = storageAccount.CreateCloudTableClient(new TableClientConfiguration());
+        table = tableClient.GetTableReference(tableName);
+        table.CreateIfNotExists();
+        */
+    }
 
-        // GET: api/<ValuesController>
-        [HttpGet]
+    // GET: api/<ValuesController>
+    [HttpGet]
         public IActionResult GetAll()
         {
             List<Book> books = new List<Book>();
