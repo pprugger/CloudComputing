@@ -35,7 +35,7 @@ namespace Web_Api.Threads
             queue = new QueueClient(configuration.GetConnectionString("AzureStorageConnect"), QueueName);
             queue.CreateIfNotExists();
             //Init CosmosDB
-            _cosmosClient = new CosmosClient(configuration.GetConnectionString("CosmosDBString")); ;
+            _cosmosClient = new CosmosClient(configuration.GetConnectionString("CosmosDBString"));
             _cosmosClient.CreateDatabaseIfNotExistsAsync("ccstandarddb");
             _database = _cosmosClient.GetDatabase("ccstandarddb");
             _database.CreateContainerIfNotExistsAsync("books", "/id");
