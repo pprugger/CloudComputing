@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using Web_Api.Models;
@@ -176,9 +177,19 @@ namespace Web_Api.Controllers
             BlobDownloadResult downloadBlob = blob.DownloadContent();
 
             byte [] content = downloadBlob.Content.ToArray();
+            byte[] decompressedContent;
+
+            //Gzip Decompressor
+            using (var compressedStream = new MemoryStream(content))
+            using (var zipStream = new GZipStream(compressedStream, CompressionMode.Decompress))
+            using (var resultStream = new MemoryStream())
+            {
+                zipStream.CopyTo(resultStream);
+                decompressedContent = resultStream.ToArray();
+            }
 
             // Convert the array to a base 64 string.
-            string data = Convert.ToBase64String(content);
+            string data = Convert.ToBase64String(decompressedContent);
 
             returnBlob.blobName = blobName;
             returnBlob.Base64Data = data;
@@ -209,10 +220,27 @@ namespace Web_Api.Controllers
         [HttpPut("/image")]
         public IActionResult PutImage([FromBody] BlobImage uploadBlob)
         {
+            //Init
             BlobClient blob = containerClient.GetBlobClient(uploadBlob.blobName);
             byte[] content = Convert.FromBase64String(uploadBlob.Base64Data);
-            BinaryData data = new BinaryData(content);
+            byte[] compressed;
 
+
+            //File compressor Gzip
+            using (var compressedStream = new MemoryStream())
+            using (var zipStream = new GZipStream(compressedStream, CompressionMode.Compress))
+            {
+                zipStream.Write(content, 0, content.Length);
+                zipStream.Close();
+                compressed = compressedStream.ToArray();
+            }
+
+            //Compressor Debug
+            Console.WriteLine("Uncompressed: {0}", content.Length);
+            Console.WriteLine("Compressed: {0}", compressed.Length);
+
+            //Create binary object and upload
+            BinaryData data = new BinaryData(compressed);
             blob.Upload(data);
 
             //Debug to console
