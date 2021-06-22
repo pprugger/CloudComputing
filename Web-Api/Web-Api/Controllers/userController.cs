@@ -51,7 +51,7 @@ namespace Web_Api.Controllers
 
         // GET: api/<UserController>
         [HttpGet]
-        public List<User> GetAll()
+        public IActionResult GetAll()
         {
 
             List<User> users = new List<User>();
@@ -60,26 +60,33 @@ namespace Web_Api.Controllers
                 users.Add(matchingUser);
             }
 
-            return users;
+            if (users.Count == 0) { return new NotFoundResult(); }
+
+            return Ok(users);
         }
 
         // GET api/<UserController>/5
         [HttpGet("{id}")]
-        public List<User> Get(string id)
+        public IActionResult Get(string id)
         {
-            List<User> users = new List<User>();
+            User user = new User();
             foreach (User matchingUser in _container.GetItemLinqQueryable<User>(true)
                 .Where(b => b.id == id))
             {
-                users.Add(matchingUser);
+                user = matchingUser;
             }
 
-            return users;
+            if (user.id == null)
+            {
+                return new NotFoundResult();
+            }
+
+            return Ok(user);
         }
 
         // POST api/<UserController>
         [HttpPost("{id}")]
-        public async IAsyncEnumerable<User> Post([FromBody] User user)
+        public async Task<IActionResult> Post([FromBody] User user)
         {
             ItemResponse<User> response = await _container.ReplaceItemAsync(
                 partitionKey: new PartitionKey(user.id),
@@ -87,7 +94,7 @@ namespace Web_Api.Controllers
                 item: user);
 
             User updated = response.Resource;
-            yield return updated;
+            return Ok(updated);
         }
 
             // PUT api/<UserController>/5
