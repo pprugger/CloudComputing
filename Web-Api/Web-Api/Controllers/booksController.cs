@@ -172,11 +172,24 @@ namespace Web_Api.Controllers
             //return "value";
 
             BlobImage returnBlob = new BlobImage();
+            returnBlob.blobName = blobName;
 
             BlobClient blob = containerClient.GetBlobClient(blobName);
-            BlobDownloadResult downloadBlob = blob.DownloadContent();
+            byte[] content;
 
-            byte [] content = downloadBlob.Content.ToArray();
+            try
+            {
+                BlobDownloadResult downloadBlob = blob.DownloadContent();
+                content = downloadBlob.Content.ToArray();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Getting blob failed with error: {e}");
+                returnBlob.Base64Data = "NotFoundError";
+                return returnBlob;
+            }
+
+            //byte [] content = downloadBlob.Content.ToArray();
             byte[] decompressedContent;
 
             //Gzip Decompressor
@@ -191,7 +204,6 @@ namespace Web_Api.Controllers
             // Convert the array to a base 64 string.
             string data = Convert.ToBase64String(decompressedContent);
 
-            returnBlob.blobName = blobName;
             returnBlob.Base64Data = data;
 
             //Debug to console
