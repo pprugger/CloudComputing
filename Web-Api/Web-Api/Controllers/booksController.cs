@@ -78,7 +78,7 @@ namespace Web_Api.Controllers
 
         // GET: api/<ValuesController>
         [HttpGet]
-        public List<Book> GetAll()
+        public IActionResult GetAll()
         {
             List<Book> books = new List<Book>();
             foreach (Book matchingBook in _container.GetItemLinqQueryable<Book>(true))
@@ -86,27 +86,31 @@ namespace Web_Api.Controllers
                 books.Add(matchingBook);
             }
 
-            return books;
+            return Ok(books);
         }
 
         // GET api/<ValuesController>/5
         [HttpGet("{id}")]
-        public List<Book> Get(string id)
+        public IActionResult Get(string id)
         {
-            List<Book> books = new List<Book>();
+            Book book = new Book();
 
             foreach (Book matchingBook in _container.GetItemLinqQueryable<Book>(true)
                        .Where(b => b.id == id))
             {
-                books.Add(matchingBook);
+                book = matchingBook;
             }
             
-            return books;
+            if (book.id == null)
+            {
+                return new NotFoundResult();
+            }
+            return Ok(book);
         }
 
         // POST api/<ValuesController>
         [HttpPost("{id}")]
-        public async IAsyncEnumerable<Book> Post([FromBody] Book request)
+        public async Task<IActionResult> Post([FromBody] Book request)
         {
             ItemResponse<Book> response = await _container.ReplaceItemAsync(
                 partitionKey: new PartitionKey(request.id),
@@ -114,7 +118,7 @@ namespace Web_Api.Controllers
                 item: request);
 
                 Book updated = response.Resource;
-            yield return updated;
+            return Ok(updated);
         }
 
         // PUT api/<ValuesController>/5
@@ -167,7 +171,7 @@ namespace Web_Api.Controllers
         }
 
         [HttpGet("/image/")]
-        public BlobImage ImageGet(string blobName)
+        public IActionResult ImageGet(string blobName)
         {
             //return "value";
 
@@ -185,8 +189,7 @@ namespace Web_Api.Controllers
             catch (Exception e)
             {
                 Console.WriteLine($"Getting blob failed with error: {e}");
-                returnBlob.Base64Data = "NotFoundError";
-                return returnBlob;
+                return new NotFoundResult();
             }
 
             //byte [] content = downloadBlob.Content.ToArray();
@@ -226,7 +229,7 @@ namespace Web_Api.Controllers
             }
             */
 
-            return returnBlob;
+            return Ok(returnBlob);
         }
 
         [HttpPut("/image")]
